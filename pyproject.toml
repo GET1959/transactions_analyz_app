@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "transactions-analyz-app"
+version = "0.1.0"
+description = ""
+authors = ["Gennady <topchiev@list.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+lint = "^1.2.1"
+
+
+[tool.poetry.group.lint.dependencies]
+mypy = "^1.7.1"
+black = "^23.11.0"
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+
+
+[tool.mypy]
+disallow_untyped_defs = 'True'
+no_implicit_optional = 'True'
+warn_return_any = 'True'
+
+[tool.isort]
+include_trailing_comma = true
+line_length = 100
+lines_after_imports = 2
+skip = '__init__.py'
+
+[tool.black]
+line-length = 100
+exclude = """
+    venv/
+    tests/
+"""
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
