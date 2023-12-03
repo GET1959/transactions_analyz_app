@@ -1,19 +1,21 @@
-import pandas as pd
-from datetime import datetime
+import json
+
+from src.utils import time_greeting, select_table, get_card_info, get_currency, get_stock
 
 
 
-def time_greeting() -> str:
-    if 4 <= datetime.now().hour < 11:
-        return "Доброе утро"
-    elif 11 <= datetime.now().hour < 16:
-        return "Добрый день"
-    elif 16 <= datetime.now().hour < 23:
-        return "Добрый вечер"
-    else:
-        return "Доброй ночи"
+URL_CUR = "https://www.cbr-xml-daily.ru/daily_json.js"
+CUR_LIST = ['USD', 'EUR']
+URL_STOCK = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE"
+USER_STOCK_LIST = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
 
 def get_brief_report(file: str) -> dict:
-    df = pd.read_excel('operations.xls')
-def get_common_info():
-    print(time_greeting())
+    report_dict = (time_greeting() | get_card_info(select_table(file, '20.07.2021'))
+                   | get_currency(URL_CUR, CUR_LIST) | get_stock(URL_STOCK, USER_STOCK_LIST))
+    with open('report.json', 'w', encoding='utf-8') as f:
+        json.dump(report_dict, f, ensure_ascii=False, indent='\t')
+    report_json = json.dumps(report_dict, ensure_ascii=False)
+    return report_json
+
+
+print(get_brief_report('operations.xls'))
