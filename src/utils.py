@@ -1,8 +1,10 @@
 import os
-import requests
-import pandas as pd
 import re
 from datetime import datetime
+from typing import Any
+
+import pandas as pd
+import requests
 
 
 def time_greeting() -> dict:
@@ -31,35 +33,67 @@ def select_table(file: str, input_date: str) -> pd.DataFrame:
     cur_dir = os.path.dirname(os.path.dirname(__file__))
     path_to_file = os.path.join(cur_dir + "/data/" + file)
     df = pd.read_excel(path_to_file)
-    df = df.dropna(subset=['Номер карты'])
-    df['Кэшбэк'] = df['Кэшбэк'].fillna(0)
-    df.rename(columns={'Дата платежа': 'date', 'Категория': 'category', 'Описание': 'description'}, inplace=True)
-    df['amount'] = abs(df['Сумма операции'])
-    df['last_digits'] = [re.findall(r'\d+', string)[0] for string in df['Номер карты']]
-    df['total_spent'] = abs(df['Сумма операции']) * (df['Сумма операции'] < 0)
-    df['cashback'] = round(
-        df['Бонусы (включая кэшбэк)'] + (abs(df['Сумма платежа']) * 0.01) * (df['Сумма платежа'] <= -100))
-    start = '01' + input_date[2:]
+    df = df.dropna(subset=["Номер карты"])
+    df["Кэшбэк"] = df["Кэшбэк"].fillna(0)
+    df.rename(
+        columns={"Дата платежа": "date", "Категория": "category", "Описание": "description"},
+        inplace=True,
+    )
+    df["amount"] = abs(df["Сумма операции"])
+    df["last_digits"] = [re.findall(r"\d+", string)[0] for string in df["Номер карты"]]
+    df["total_spent"] = abs(df["Сумма операции"]) * (df["Сумма операции"] < 0)
+    df["cashback"] = round(
+        df["Бонусы (включая кэшбэк)"]
+        + (abs(df["Сумма платежа"]) * 0.01) * (df["Сумма платежа"] <= -100)
+    )
+    start = "01" + input_date[2:]
 
-    df['date_date'] = pd.to_datetime(df['date'], dayfirst=True)
+    df["date_date"] = pd.to_datetime(df["date"], dayfirst=True)
     start_date = datetime.strptime(start, "%d.%m.%Y")
     end_date = datetime.strptime(input_date, "%d.%m.%Y")
 
-    mask = (df['date_date'] >= start_date) & (df['date_date'] <= end_date)
-    df_selected = df.loc[mask].sort_values('amount', axis=0, ascending=False)
+    mask = (df["date_date"] >= start_date) & (df["date_date"] <= end_date)
+    df_selected = df.loc[mask].reset_index().drop(["index", "date_date"], axis=1)
     return df_selected
 
-#print(select_table('operations.xls', '20.07.2021'))
 
 def get_card_info(df: pd.DataFrame) -> dict:
-    df_cards = df[['last_digits', 'total_spent', 'cashback']].groupby('last_digits').sum().reset_index()
-    dict_cards = {'cards': [dict(row) for index, row in df_cards.iterrows()]}
+    """
+    Функция принимает на вход фрейм данных и возвращает словарь, содержащий данные по картам.
+    :param df:
+    :return dict_cards:
+    """
+    df_cards = (
+        df[["last_digits", "total_spent", "cashback"]].groupby("last_digits").sum().reset_index()
+    )
+    dict_cards = {"cards": [dict(row) for index, row in df_cards.iterrows()]}
 
     return dict_cards
 
 
+def get_top_transactions(df: pd.DataFrame) -> dict:
+    """
+    Функция принимает на вход фрейм данных и возвращает словарь, содержащий данные по пяти
+    самым крупным транзакциям.
+    :param df:
+    :return dict_cards:
+    """
+    df_top_transactions = (
+        df[["date", "amount", "category", "description"]]
+        .sort_values("amount", axis=0, ascending=False)
+        .head(5)
+    )
+    dict_top_transactions = {
+        "top_transactions": [dict(row) for index, row in df_top_transactions.iterrows()]
+    }
+
+    return dict_top_transactions
+
+
 URL_CUR = "https://www.cbr-xml-daily.ru/daily_json.js"
-CUR_LIST = ['USD', 'EUR']
+CUR_LIST = ["USD", "EUR", "GBP"]
+
+
 def get_currency(url_cur: str, cur_list: list) -> dict:
     """
     Функция принимает url для получения курса валюты по API и список валют для запроса
@@ -72,33 +106,38 @@ def get_currency(url_cur: str, cur_list: list) -> dict:
     if response.status_code == 200:
         data = response.json()
         data_dict = {currency: data["Valute"][currency]["Value"] for currency in data["Valute"]}
-        cur_dict = {"currency_rates": [{"currency": cur, "rate": data_dict[cur]} for cur in data_dict if
-                                       cur in cur_list]}
-        return cur_dict
-
-
-
-print(time_greeting() | get_card_info(select_table('operations.xls', '20.07.2021')) | get_currency(URL_CUR, CUR_LIST))
+        currency_dict = {
+            "currency_rates": [
+                {"currency": k, "rate": v} for k, v in data_dict.items() if k in cur_list
+            ]
+        }
+    return currency_dict
 
 
 URL_STOCK = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE"
 USER_STOCK_LIST = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
 
 
-def get_stock(url: str, users_stock_list: list) -> dict:
+def get_stock(url: str, users_stock_list: list) -> dict[Any, Any]:
     """
     Функция принимает на вход url для запроса по API и список акций для получения котировок и
     возвращает словарь с котировками.
+    :param url:
+    :param users_stock_list:
+    :return stock_dict:
     """
-    alpha_token = os.getenv('ALPHA_KEY')
+    alpha_token = os.getenv("ALPHA_KEY")
 
     stock_dict = {"stock_prices": []}
     for symbol in users_stock_list:
         response = requests.get(f"{url}&symbol={symbol}&apikey={alpha_token}")
         if response.status_code == 200:
             data = response.json()
-            stock_dict["stock_prices"].append({"stock": data["Global Quote"]["01. symbol"],
-                                               "price": data["Global Quote"]["05. price"]})
+            stock_dict["stock_prices"].append(
+                {
+                    "stock": data["Global Quote"]["01. symbol"],
+                    "price": data["Global Quote"]["05. price"],
+                }
+            )
 
     return stock_dict
-
