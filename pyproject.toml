@@ -15,6 +15,7 @@ requests = "^2.31.0"
 openpyxl = "^3.1.2"
 pandas-stubs = "^2.1.1.230928"
 types-requests = "^2.31.0.10"
+transliterate = "^1.10.2"
 
 
 [tool.poetry.group.lint.dependencies]
@@ -33,6 +34,7 @@ pytest-cov = "^4.1.0"
 disallow_untyped_defs = 'True'
 no_implicit_optional = 'True'
 warn_return_any = 'True'
+ignore_missing_imports = 'True'
 
 [tool.isort]
 include_trailing_comma = true
