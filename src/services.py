@@ -26,5 +26,5 @@ def get_cashback(file: str, year: int, month: int) -> dict:
         ].sort_values(by=["cashback"], ascending=False)
     cashback_dict = {k: v for k, v in zip(df_targ["Категория"], df_targ["cashback"])}
     with open("cashback.json", "w", encoding="utf-8") as f:
-        json.dump(cashback_dict, f, ensure_ascii=False, indent="\t")
+        json.dump(cashback_dict, f)
     return cashback_dict

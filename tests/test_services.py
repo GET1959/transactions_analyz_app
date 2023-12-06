@@ -1,3 +1,6 @@
+import json
+import os
+
 import pytest
 
 from src.services import get_cashback
@@ -85,4 +88,10 @@ from src.services import get_cashback
     ],
 )
 def test_get_cashback(file, year, month, expected):
+    filename = "cashback.json"
+    if os.path.exists(filename):
+        os.remove(filename)
     assert get_cashback(file, year, month) == expected
+    with open("cashback.json") as f:
+        data = json.load(f)
+    assert data == expected
