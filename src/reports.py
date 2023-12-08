@@ -65,3 +65,4 @@ def get_costs(
     df_targ = df_result.loc[(df_result["Категория"] == users_category)].loc[:, ["date", "costs"]]
     df_targ["date"] = df_targ["date"].dt.strftime("%d.%m.%Y")
     return {users_category: df_targ.to_dict(orient="records")}
+print(get_costs('operations.xls', 'Дом и ремонт', '31.12.2021'))

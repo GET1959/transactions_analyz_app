@@ -1,15 +1,12 @@
 import os
 from datetime import datetime
+
 import pandas as pd
 import requests
 
-from src.utils import (
-    get_card_info,
-    get_currency, get_stock,
-    get_top_transactions,
-    select_table,
-    time_greeting,
-)
+from src.utils import (get_card_info, get_currency, get_stock,
+                       get_top_transactions, select_table,
+                       time_greeting,)
 
 
 URL_CUR = "https://www.cbr-xml-daily.ru/daily_json.js"

@@ -24,6 +24,5 @@ def get_brief_report(file: str) -> str:
         | get_currency(URL_CUR, CUR_LIST)
         | get_stock(URL_STOCK, USER_STOCK_LIST))
     with open("report.json", "w", encoding="utf-8") as f:
-        json.dump(report_dict, f, ensure_ascii=False, indent="\t")
-    report_json = json.dumps(report_dict, ensure_ascii=False, indent="\t")
-    return report_json
+        json.dump(report_dict, f, indent="\t")
+    return report_dict
