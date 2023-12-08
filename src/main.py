@@ -11,6 +11,13 @@ USERS_CAT = input("Категория")
 
 
 def main() -> Any:
+    """
+    Функция запускает приложение и возвращает результат трех функций:
+    краткий отчет по картам с курсами валют и основных акций,
+    результаты по кэшбэку,
+    траты по категории.
+    :return report_dict, cashback_dict, category_dict:
+    """
     return (
         get_brief_report(FILE_NAME),
         get_cashback(FILE_NAME, int(USERS_DATE[6:]), int(USERS_DATE[3:5])),
